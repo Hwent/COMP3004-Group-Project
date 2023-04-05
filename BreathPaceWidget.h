@@ -5,18 +5,22 @@
 #include <string>
 #include <QDebug>
 #include <QWidget>
+#include <QLabel>
 
 using namespace std;
 
-class BreathPaceWidget {
+class BreathPaceWidget : public QWidget {
+
+Q_OBJECT
 
 private:
     int interval;
-    QString visualIndicator;
+    QLabel *breathPaceLabel;
 
 public:
-    BreathPaceWidget();
+    explicit BreathPaceWidget(QWidget *parent = nullptr);
     void updateInterval(int);
+    void updateBreathPaceLabel();
 
 signals:
     void intervalUpdated(int);

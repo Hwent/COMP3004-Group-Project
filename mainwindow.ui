@@ -38,7 +38,7 @@
        <height>171</height>
       </rect>
      </property>
-     <widget class="QWidget" name="Graph" native="true">
+     <widget class="QCustomPlot" name="Graph" native="true">
       <property name="geometry">
        <rect>
         <x>30</x>
@@ -213,6 +213,19 @@
       <string>I/O</string>
      </property>
     </widget>
+    <widget class="QPushButton" name="test">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>360</y>
+       <width>51</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>test</string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -227,6 +240,14 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QCustomPlot</class>
+   <extends>QWidget</extends>
+   <header>qcustomplot.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
