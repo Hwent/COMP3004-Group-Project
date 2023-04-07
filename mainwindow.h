@@ -18,8 +18,11 @@ public:
 private:
     Ui::MainWindow *ui;
 
+    bool powerState;
+
 private slots:
     void test();
     void changeBatteryLevel(double);
+    void changePower();
 };
 #endif // MAINWINDOW_H

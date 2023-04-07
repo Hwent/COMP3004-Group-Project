@@ -10,6 +10,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     //connect(ui->test, SIGNAL(released()), this, SLOT (test()));
     test();
+
+    powerState=false;
+    changePower();
+        connect(ui->PowerButton, &QPushButton::released, this, &MainWindow::changePower);
 }
 
 MainWindow::~MainWindow()
@@ -49,6 +53,7 @@ void MainWindow::test()
 
 }
 
+
 void MainWindow::changeBatteryLevel(double newLevel) {
 
         int newLevelInt = int(newLevel);
@@ -56,7 +61,22 @@ void MainWindow::changeBatteryLevel(double newLevel) {
 
         if (newLevelInt <= 20) {
             ui->BatteryBar->setStyleSheet("QProgressBar{selection-background-color:#e60000}");
+            // warning trigger
         }
 
+
+}
+
+void MainWindow::changePower()
+{
+    powerState = !powerState;
+    ui->MenuButton->setEnabled(powerState);
+    ui->SelectButton->setEnabled(powerState);
+    ui->UpButton->setEnabled(powerState);
+    ui->RightButton->setEnabled(powerState);
+    ui->LeftButton->setEnabled(powerState);
+    ui->DownButton->setEnabled(powerState);
+    ui->SelectButton->setEnabled(powerState);
+    ui->Screen->setVisible(powerState);
 }
 
