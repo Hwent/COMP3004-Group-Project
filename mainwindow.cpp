@@ -45,5 +45,18 @@ void MainWindow::test()
     customPlot->graph(0)->setData(x, y);
     customPlot->rescaleAxes();
 
+    changeBatteryLevel(20);
+
+}
+
+void MainWindow::changeBatteryLevel(double newLevel) {
+
+        int newLevelInt = int(newLevel);
+        ui->BatteryBar->setValue(newLevelInt);
+
+        if (newLevelInt <= 20) {
+            ui->BatteryBar->setStyleSheet("QProgressBar{selection-background-color:#e60000}");
+        }
+
 }
 

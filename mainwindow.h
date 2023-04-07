@@ -20,5 +20,6 @@ private:
 
 private slots:
     void test();
+    void changeBatteryLevel(double);
 };
 #endif // MAINWINDOW_H
