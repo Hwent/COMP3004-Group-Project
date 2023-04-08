@@ -32,9 +32,9 @@
     <widget class="QWidget" name="Screen" native="true">
      <property name="geometry">
       <rect>
-       <x>50</x>
+       <x>20</x>
        <y>60</y>
-       <width>221</width>
+       <width>291</width>
        <height>171</height>
       </rect>
      </property>
@@ -43,7 +43,7 @@
        <rect>
         <x>30</x>
         <y>50</y>
-        <width>161</width>
+        <width>241</width>
         <height>80</height>
        </rect>
       </property>
@@ -51,7 +51,7 @@
      <widget class="QWidget" name="BreathPacer" native="true">
       <property name="geometry">
        <rect>
-        <x>20</x>
+        <x>60</x>
         <y>140</y>
         <width>181</width>
         <height>21</height>
@@ -61,7 +61,7 @@
      <widget class="QLineEdit" name="CoherenceLabel">
       <property name="geometry">
        <rect>
-        <x>40</x>
+        <x>70</x>
         <y>10</y>
         <width>51</width>
         <height>25</height>
@@ -71,7 +71,7 @@
      <widget class="QLineEdit" name="LengthLabel">
       <property name="geometry">
        <rect>
-        <x>90</x>
+        <x>120</x>
         <y>10</y>
         <width>51</width>
         <height>25</height>
@@ -81,7 +81,7 @@
      <widget class="QLineEdit" name="AchievmentLabel">
       <property name="geometry">
        <rect>
-        <x>140</x>
+        <x>170</x>
         <y>10</y>
         <width>51</width>
         <height>25</height>
@@ -119,6 +119,19 @@
       </property>
       <property name="textDirection">
        <enum>QProgressBar::TopToBottom</enum>
+      </property>
+     </widget>
+     <widget class="QLabel" name="Sensor">
+      <property name="geometry">
+       <rect>
+        <x>264</x>
+        <y>10</y>
+        <width>20</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
       </property>
      </widget>
     </widget>

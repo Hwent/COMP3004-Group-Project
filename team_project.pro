@@ -16,7 +16,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    Battery.cc \
     BreathPaceWidget.cc \
+    Device.cc \
+    Screen.cc \
+    Sensor.cc \
     Settings.cc \
     SimluationData.cc \
     main.cpp \
@@ -24,7 +28,11 @@ SOURCES += \
     qcustomplot.cpp
 
 HEADERS += \
+    Battery.h \
     BreathPaceWidget.h \
+    Device.h \
+    Screen.h \
+    Sensor.h \
     Settings.h \
     SimulationData.h \
     mainwindow.h \

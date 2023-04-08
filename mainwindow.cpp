@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QDebug>
+#include <QApplication>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -8,17 +9,56 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    //connect(ui->test, SIGNAL(released()), this, SLOT (test()));
-    test();
+    initGui();
+    connect(this->device.getSensor(), SIGNAL(sensorStateChanged()), this, SLOT(handleSensorStateChange()));
+    connect(ui->test, SIGNAL(released()), this, SLOT (test()));
 
     powerState=false;
     changePower();
-        connect(ui->PowerButton, &QPushButton::released, this, &MainWindow::changePower);
+    connect(ui->PowerButton, &QPushButton::released, this, &MainWindow::changePower);
+
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+/**
+  initialize basic gui interface
+  @param {}
+  @return {void} Returns nothing
+*/
+void MainWindow::initGui()
+{
+    this->sensorLightOn = true;
+    ui->Sensor->setStyleSheet("QLabel {background-color: pink}");
+}
+
+/**
+  when Sensor class sends signal that the heart monitor has turned off or on, then this function
+    updates the sensor gui to the appropraite colour (ON = pink, OFF = grey)
+  changes its its sensorLightOn state to true or false accordingly
+  @param {}
+  @return {void} Returns nothing
+*/
+void MainWindow::handleSensorStateChange()
+{
+    qInfo() << "Inside handleSensorStateChange()";
+
+    QLabel *sensor = ui->Sensor;
+
+    if (this->sensorLightOn == true)
+    {
+        sensor->setStyleSheet("QLabel {background-color: grey}");
+        this->sensorLightOn = false;
+    }
+    else
+    {
+        sensor->setStyleSheet("QLabel {background-color: pink}");
+        this->sensorLightOn = true;
+    }
+
 }
 
 void MainWindow::test()
@@ -49,10 +89,13 @@ void MainWindow::test()
     customPlot->graph(0)->setData(x, y);
     customPlot->rescaleAxes();
 
-    changeBatteryLevel(20);
+    customPlot->replot();
+
+    // test heart monitor sensor
+    qInfo() << "Testing sensor change";
+    this->device.getSensor()->changeSensorState(!this->sensorLightOn);
 
 }
-
 
 void MainWindow::changeBatteryLevel(double newLevel) {
 
@@ -61,11 +104,10 @@ void MainWindow::changeBatteryLevel(double newLevel) {
 
         if (newLevelInt <= 20) {
             ui->BatteryBar->setStyleSheet("QProgressBar{selection-background-color:#e60000}");
-            // warning trigger
         }
 
-
 }
+
 
 void MainWindow::changePower()
 {

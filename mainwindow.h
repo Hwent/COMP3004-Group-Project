@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "Device.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -13,16 +14,23 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QWidget *parent = nullptr);
+    void initGui();
     ~MainWindow();
 
 private:
     Ui::MainWindow *ui;
+    Device device;
+
 
     bool powerState;
+
+    bool sensorLightOn;
 
 private slots:
     void test();
     void changeBatteryLevel(double);
     void changePower();
+
+    void handleSensorStateChange();
 };
 #endif // MAINWINDOW_H

@@ -12,7 +12,6 @@ Settings::Settings()
   @param {int} new challenge level
   @return {void} Returns nothing
 */
-
 void Settings::updateChallengLevel(int challengeLevel)
 {
     this->challengeLevel = challengeLevel;
