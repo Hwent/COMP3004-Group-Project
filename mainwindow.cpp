@@ -13,8 +13,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this->device.getSensor(), SIGNAL(sensorStateChanged()), this, SLOT(handleSensorStateChange()));
     connect(ui->test, SIGNAL(released()), this, SLOT (test()));
 
-    powerState=false;
-    changePower();
     connect(ui->PowerButton, &QPushButton::released, this, &MainWindow::changePower);
 
 }
@@ -31,8 +29,21 @@ MainWindow::~MainWindow()
 */
 void MainWindow::initGui()
 {
+    // default sensor state
     this->sensorLightOn = true;
     ui->Sensor->setStyleSheet("QLabel {background-color: pink}");
+
+    // disable screen and buttons until power is ON
+    powerState=false;
+    ui->MenuButton->setEnabled(powerState);
+    ui->SelectButton->setEnabled(powerState);
+    ui->UpButton->setEnabled(powerState);
+    ui->RightButton->setEnabled(powerState);
+    ui->LeftButton->setEnabled(powerState);
+    ui->DownButton->setEnabled(powerState);
+    ui->SelectButton->setEnabled(powerState);
+    ui->Screen->setVisible(powerState);
+
 }
 
 /**
@@ -108,7 +119,11 @@ void MainWindow::changeBatteryLevel(double newLevel) {
 
 }
 
-
+/**
+  disable/enable all buttons and screen if device is ON/OFF
+  @param {}
+  @return {void} Returns nothing
+*/
 void MainWindow::changePower()
 {
     powerState = !powerState;
