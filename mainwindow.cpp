@@ -10,7 +10,9 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     initGui();
+
     connect(this->device.getSensor(), SIGNAL(sensorStateChanged()), this, SLOT(handleSensorStateChange()));
+    connect(this->device.getBattery(), SIGNAL(batteryLevelUpdated()), this, SLOT(handleBatteryChange()));
     connect(ui->test, SIGNAL(released()), this, SLOT (test()));
 
     connect(ui->PowerButton, &QPushButton::released, this, &MainWindow::changePower);
@@ -72,6 +74,31 @@ void MainWindow::handleSensorStateChange()
 
 }
 
+/**
+  when Battery class sends signal that the battery had changed, then this function
+    updates the battery gui progress bar
+  @param {}
+  @return {void} Returns nothing
+*/
+void MainWindow::handleBatteryChange()
+{
+    qreal batteryLevel = this->device.getBattery()->getBatteryLevel();
+    QProgressBar *batteryBar = ui->BatteryBar;
+    QWidget *screen = ui->Screen;
+
+    batteryBar->setValue(batteryLevel);
+    if (batteryLevel <= 20)
+    {
+        batteryBar->setStyleSheet("QProgressBar::chunk {background-color: red}");
+        QLabel *lowBatteryMessage = new QLabel("LOW BATTERY", screen);
+        QVBoxLayout *layout = new QVBoxLayout(screen);
+        layout->addWidget(lowBatteryMessage);
+        layout->setAlignment(lowBatteryMessage, Qt::AlignHCenter | Qt::AlignTop);
+        screen->setLayout(layout);
+    }
+
+}
+
 void MainWindow::test()
 {
     // add temp graph
@@ -105,6 +132,13 @@ void MainWindow::test()
     // test heart monitor sensor
     qInfo() << "Testing sensor change";
     this->device.getSensor()->changeSensorState(!this->sensorLightOn);
+
+    // test battery
+//    qInfo() << "Testing battery: set to 80%";
+//    this->device.getBattery()->updateBatteryLevel(80);
+    qInfo() << "Testing battery: set to 15%";
+    this->device.getBattery()->updateBatteryLevel(15);
+
 
 }
 

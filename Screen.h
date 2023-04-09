@@ -5,6 +5,7 @@
 #include <string>
 #include <QDebug>
 #include "Sensor.h"
+#include "Battery.h"
 
 using namespace std;
 
@@ -14,10 +15,12 @@ class Screen: public QObject
 
 private:
     Sensor heartMonitor;
+    Battery batteryLevel;
 
 public:
     Screen();
     Sensor* getSensor();
+    Battery* getBattery();
 };
 
 #endif // SCREEN_H

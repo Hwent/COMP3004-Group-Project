@@ -7,13 +7,20 @@
 
 using namespace std;
 
-class Battery {
+class Battery: public QObject{
+
+    Q_OBJECT;
+
 private:
     qreal batteryLevel;
 
 public:
     Battery();
     void updateBatteryLevel(qreal);
+    qreal getBatteryLevel();
+
+signals:
+    void batteryLevelUpdated();     // send signal to change battery widget
 };
 
 #endif // BATTERY_H

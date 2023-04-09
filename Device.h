@@ -18,6 +18,7 @@ private:
 public:
     Device();
     Sensor* getSensor();
+    Battery* getBattery();
 };
 
 #endif // DEVICE_H

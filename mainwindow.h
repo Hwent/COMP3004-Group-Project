@@ -32,5 +32,6 @@ private slots:
     void changePower();
 
     void handleSensorStateChange();
+    void handleBatteryChange();
 };
 #endif // MAINWINDOW_H

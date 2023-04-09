@@ -14,3 +14,13 @@ Sensor* Device::getSensor()
 {
     return this->screen.getSensor();
 }
+
+/**
+  returns Battery instance from Screen
+  (to be used for slot/signal in MainWindow to change ui)
+  @return {Battery*} Returns Battery instance
+*/
+Battery* Device::getBattery()
+{
+    return this->screen.getBattery();
+}
