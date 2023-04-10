@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QLabel>
 #include "Device.h"
 
 QT_BEGIN_NAMESPACE
@@ -23,13 +24,17 @@ private:
 
 
     bool powerState;
-
     bool sensorLightOn;
+    QVector<QLabel *> menuOptionLabels;
+    int selectedMenuOption;
+    bool isMenuButtonPressed;
 
 private slots:
     void test();
-    void changeBatteryLevel(double);
     void changePower();
+    void menuButtonPressed();
+    void downArrowPressed();
+    void upArrowPressed();
 
     void handleSensorStateChange();
     void handleBatteryChange();

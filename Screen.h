@@ -16,11 +16,13 @@ class Screen: public QObject
 private:
     Sensor heartMonitor;
     Battery batteryLevel;
+    vector<string> menuOptions;
 
 public:
     Screen();
     Sensor* getSensor();
     Battery* getBattery();
+    vector<string> getMenuOptions();
 };
 
 #endif // SCREEN_H

@@ -58,36 +58,6 @@
        </rect>
       </property>
      </widget>
-     <widget class="QLineEdit" name="CoherenceLabel">
-      <property name="geometry">
-       <rect>
-        <x>70</x>
-        <y>30</y>
-        <width>51</width>
-        <height>25</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QLineEdit" name="LengthLabel">
-      <property name="geometry">
-       <rect>
-        <x>120</x>
-        <y>30</y>
-        <width>51</width>
-        <height>25</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QLineEdit" name="AchievmentLabel">
-      <property name="geometry">
-       <rect>
-        <x>170</x>
-        <y>30</y>
-        <width>51</width>
-        <height>25</height>
-       </rect>
-      </property>
-     </widget>
      <widget class="QProgressBar" name="BatteryBar">
       <property name="geometry">
        <rect>
@@ -270,6 +240,19 @@
      </property>
      <property name="text">
       <string>test</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="backButton">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>240</y>
+       <width>21</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&lt;-</string>
      </property>
     </widget>
    </widget>

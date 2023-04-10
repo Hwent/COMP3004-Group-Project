@@ -13,6 +13,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(this->device.getSensor(), SIGNAL(sensorStateChanged()), this, SLOT(handleSensorStateChange()));
     connect(this->device.getBattery(), SIGNAL(batteryLevelUpdated()), this, SLOT(handleBatteryChange()));
+    connect(ui->MenuButton, SIGNAL (released()), this, SLOT (menuButtonPressed()));
+    connect(ui->DownButton, SIGNAL (released()), this, SLOT (downArrowPressed()));
+    connect(ui->UpButton, SIGNAL (released()), this, SLOT (upArrowPressed()));
     connect(ui->test, SIGNAL(released()), this, SLOT (test()));
 
     connect(ui->PowerButton, &QPushButton::released, this, &MainWindow::changePower);
@@ -31,6 +34,8 @@ MainWindow::~MainWindow()
 */
 void MainWindow::initGui()
 {
+    this->isMenuButtonPressed = false;
+
     // default sensor state
     this->sensorLightOn = true;
     ui->Sensor->setStyleSheet("QLabel {background-color: pink}");
@@ -46,6 +51,72 @@ void MainWindow::initGui()
     ui->SelectButton->setEnabled(powerState);
     ui->Screen->setVisible(powerState);
 
+
+}
+
+/**
+  handle scenario when menu button pressed
+  @param {}
+  @return {void} Returns nothing
+*/
+void MainWindow::menuButtonPressed()
+{
+    this->selectedMenuOption = 0;
+    this->isMenuButtonPressed = true;
+
+    ui->Graph->hide();
+    QWidget *screen = ui->Screen;
+    vector<string> menuOptions = this->device.getScreen()->getMenuOptions();
+
+    // display menu
+    QVBoxLayout *layout = new QVBoxLayout(screen);
+    for (const string &option : menuOptions)
+    {
+        QLabel *optionLabel = new QLabel(QString::fromStdString(option), screen);
+        optionLabel->setStyleSheet("border: 1px solid black;");
+        layout->addWidget(optionLabel);
+        layout->setAlignment(optionLabel, Qt::AlignHCenter | Qt::AlignVCenter);
+        menuOptionLabels.append(optionLabel);
+    }
+    screen->setLayout(layout);
+    screen->setStyleSheet("background-color: white");
+
+    QLabel *label = menuOptionLabels.at(0);
+    label->setStyleSheet("border: 1px solid yellow;");
+}
+
+/**
+  handle scenario where down arrow is pressed
+  @param {}
+  @return {void} Returns nothing
+*/
+void MainWindow::downArrowPressed()
+{
+    if (selectedMenuOption != 2 && isMenuButtonPressed)
+    {
+        QLabel *label = menuOptionLabels.at(selectedMenuOption);
+        label->setStyleSheet("border: 1px solid black;");
+        this->selectedMenuOption++;
+        label = menuOptionLabels.at(selectedMenuOption);
+        label->setStyleSheet("border: 1px solid yellow;");
+    }
+}
+
+/**
+  handle scenario where up arrow is pressed
+  @param {}
+  @return {void} Returns nothing
+*/
+void MainWindow::upArrowPressed()
+{
+    if (selectedMenuOption !=0 && isMenuButtonPressed)
+    {
+        QLabel *label = menuOptionLabels.at(selectedMenuOption);
+        label->setStyleSheet("border: 1px solid black;");
+        this->selectedMenuOption--;
+        label = menuOptionLabels.at(selectedMenuOption);
+        label->setStyleSheet("border: 1px solid yellow;");
+    }
 }
 
 /**
@@ -65,11 +136,18 @@ void MainWindow::handleSensorStateChange()
     {
         sensor->setStyleSheet("QLabel {background-color: grey}");
         this->sensorLightOn = false;
+
+        QLabel *sensorOffMessage = new QLabel("SENSOR OFF", ui->Screen);
+        QVBoxLayout *layout = new QVBoxLayout(ui->Screen);
+        layout->addWidget(sensorOffMessage);
+        layout->setAlignment(sensorOffMessage, Qt::AlignHCenter | Qt::AlignTop);
+        ui->Screen->setLayout(layout);
     }
     else
     {
         sensor->setStyleSheet("QLabel {background-color: pink}");
         this->sensorLightOn = true;
+
     }
 
 }
@@ -136,20 +214,9 @@ void MainWindow::test()
     // test battery
 //    qInfo() << "Testing battery: set to 80%";
 //    this->device.getBattery()->updateBatteryLevel(80);
-    qInfo() << "Testing battery: set to 15%";
-    this->device.getBattery()->updateBatteryLevel(15);
+//    qInfo() << "Testing battery: set to 15%";
+//    this->device.getBattery()->updateBatteryLevel(15);
 
-
-}
-
-void MainWindow::changeBatteryLevel(double newLevel) {
-
-        int newLevelInt = int(newLevel);
-        ui->BatteryBar->setValue(newLevelInt);
-
-        if (newLevelInt <= 20) {
-            ui->BatteryBar->setStyleSheet("QProgressBar{selection-background-color:#e60000}");
-        }
 
 }
 

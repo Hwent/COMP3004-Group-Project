@@ -18,7 +18,5 @@ void Battery::updateBatteryLevel(qreal newBattery)
 
 }
 
-qreal Battery::getBatteryLevel()
-{
-    return this->batteryLevel;
-}
+qreal Battery::getBatteryLevel() {return this->batteryLevel;}
+

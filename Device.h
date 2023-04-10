@@ -5,6 +5,7 @@
 #include <string>
 #include <QDebug>
 #include "Screen.h"
+#include "Button.h"
 
 using namespace std;
 
@@ -19,6 +20,7 @@ public:
     Device();
     Sensor* getSensor();
     Battery* getBattery();
+    Screen* getScreen();
 };
 
 #endif // DEVICE_H
