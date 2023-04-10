@@ -18,7 +18,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     Battery.cc \
     BreathPaceWidget.cc \
-    Button.cc \
+    #Button.cc \
     Device.cc \
     Screen.cc \
     Sensor.cc \
@@ -31,7 +31,7 @@ SOURCES += \
 HEADERS += \
     Battery.h \
     BreathPaceWidget.h \
-    Button.h \
+    #Button.h \
     Device.h \
     Screen.h \
     Sensor.h \
