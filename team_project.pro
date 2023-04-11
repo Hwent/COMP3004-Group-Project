@@ -23,6 +23,7 @@ SOURCES += \
     Sensor.cc \
     Settings.cc \
     SimluationData.cc \
+    coherencescore.cpp \
     main.cpp \
     mainwindow.cpp \
     qcustomplot.cpp
@@ -35,6 +36,7 @@ HEADERS += \
     Sensor.h \
     Settings.h \
     SimulationData.h \
+    coherencescore.h \
     mainwindow.h \
     qcustomplot.h
 
