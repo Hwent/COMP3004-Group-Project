@@ -50,8 +50,6 @@ void MainWindow::initGui()
     ui->DownButton->setEnabled(powerState);
     ui->SelectButton->setEnabled(powerState);
     ui->Screen->setVisible(powerState);
-
-
 }
 
 /**
@@ -68,17 +66,29 @@ void MainWindow::menuButtonPressed()
     QWidget *screen = ui->Screen;
     vector<string> menuOptions = this->device.getScreen()->getMenuOptions();
 
+    QLayout *oldLayout = screen->layout();
+
+    if (oldLayout != nullptr) {
+        for (auto i: menuOptionLabels)
+        {
+            delete i;
+        }
+
+        delete oldLayout;
+        menuOptionLabels.clear();
+    }
+
     // display menu
     QVBoxLayout *layout = new QVBoxLayout(screen);
     for (const string &option : menuOptions)
     {
-        QLabel *optionLabel = new QLabel(QString::fromStdString(option), screen);
+        QLabel *optionLabel = new QLabel(QString::fromStdString(option));
         optionLabel->setStyleSheet("border: 1px solid black;");
         layout->addWidget(optionLabel);
         layout->setAlignment(optionLabel, Qt::AlignHCenter | Qt::AlignVCenter);
         menuOptionLabels.append(optionLabel);
     }
-    screen->setLayout(layout);
+    //screen->setLayout(layout);
     screen->setStyleSheet("background-color: white");
 
     QLabel *label = menuOptionLabels.at(0);
@@ -236,5 +246,11 @@ void MainWindow::changePower()
     ui->DownButton->setEnabled(powerState);
     ui->SelectButton->setEnabled(powerState);
     ui->Screen->setVisible(powerState);
+
+    // open to the menu screen when turned on
+    if (powerState == true)
+    {
+        menuButtonPressed();
+    }
 }
 
