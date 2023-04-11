@@ -19,6 +19,7 @@ SOURCES += \
     Battery.cc \
     BreathPaceWidget.cc \
     Device.cc \
+    Graph.cc \
     Screen.cc \
     Sensor.cc \
     Settings.cc \
@@ -32,6 +33,7 @@ HEADERS += \
     Battery.h \
     BreathPaceWidget.h \
     Device.h \
+    Graph.h \
     Screen.h \
     Sensor.h \
     Settings.h \

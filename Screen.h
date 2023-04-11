@@ -18,6 +18,7 @@ private:
     Battery batteryLevel;
     vector<string> menuOptions;
 
+
 public:
     Screen();
     Sensor* getSensor();
