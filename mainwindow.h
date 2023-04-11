@@ -40,7 +40,7 @@ private slots:
     void upArrowPressed();
     void selectorButtonPressed();
     void startSession();
-
+    //void logpressed();
     void handleSensorStateChange();
     void handleBatteryChange();
 };

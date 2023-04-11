@@ -6,6 +6,7 @@
 #include <QDebug>
 #include "Sensor.h"
 #include "Battery.h"
+#include "SimulationData.h"
 
 using namespace std;
 
@@ -17,6 +18,8 @@ private:
     Sensor heartMonitor;
     Battery batteryLevel;
     vector<string> menuOptions;
+    vector<SimulationData> log;
+
 
 
 public:
@@ -24,6 +27,7 @@ public:
     Sensor* getSensor();
     Battery* getBattery();
     vector<string> getMenuOptions();
+    vector<SimulationData> getlog();
 };
 
 #endif // SCREEN_H

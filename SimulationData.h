@@ -2,7 +2,7 @@
 #define SIMULATIONDATA_H
 
 #include <iostream>
-#include <string>
+#include <QString>
 #include <QDebug>
 
 using namespace std;
@@ -13,6 +13,9 @@ private:
     int coherenceScore;
     int challengeLevel;
     int breathPacer;
+public:
+    SimulationData(int,int,int);
+    QString toString();
 
 };
 

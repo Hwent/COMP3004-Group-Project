@@ -23,7 +23,7 @@ SOURCES += \
     Screen.cc \
     Sensor.cc \
     Settings.cc \
-    SimluationData.cc \
+    SimulationData.cc \
     coherencescore.cpp \
     main.cpp \
     mainwindow.cpp \

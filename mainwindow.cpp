@@ -69,6 +69,20 @@ void MainWindow::initGui()
     }
     screen->setLayout(menuLayout);
 
+    //init log/history menu
+    QListWidget *log= ui->logList;
+    vector<SimulationData> datalist = this->device.getScreen()->getlog();
+    QStringList history=QStringList();
+    for (SimulationData data : datalist)
+    {
+    history.append(data.toString());
+    }
+    log->addItems(history);
+    log->hide();
+
+    qInfo()<<history.at(0);
+
+
 
 }
 
@@ -83,7 +97,7 @@ void MainWindow::menuButtonPressed()
     this->isMenuButtonPressed = true;
 
     ui->Graph->hide();
-
+    ui->logList->hide();
     menuOptionLabels.at(0)->show();
     menuOptionLabels.at(1)->show();
     menuOptionLabels.at(2)->show();
@@ -104,6 +118,7 @@ void MainWindow::menuButtonPressed()
 */
 void MainWindow::selectorButtonPressed()
 {
+    // Start/End Session pressed
     if (selectedMenuOption == 0 && isMenuButtonPressed)
     {
         ui->Graph->show();
@@ -114,8 +129,19 @@ void MainWindow::selectorButtonPressed()
 
         if (!sessionStarted)
             startSession();
-
     }
+    // Log/History pressed
+    if (selectedMenuOption == 2 && isMenuButtonPressed)
+        {
+            ui->logList->show();
+            menuOptionLabels.at(0)->hide();
+            menuOptionLabels.at(1)->hide();
+            menuOptionLabels.at(2)->hide();
+
+
+
+        }
+
 }
 
 /**
