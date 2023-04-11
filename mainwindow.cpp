@@ -279,11 +279,5 @@ void MainWindow::changePower()
     ui->DownButton->setEnabled(powerState);
     ui->SelectButton->setEnabled(powerState);
     ui->Screen->setVisible(powerState);
-
-    // open to the menu screen when turned on
-    if (powerState == true)
-    {
-        menuButtonPressed();
-    }
 }
 
