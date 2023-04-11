@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include <QDebug>
 #include <QApplication>
+#include <QLabel>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -16,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->MenuButton, SIGNAL (released()), this, SLOT (menuButtonPressed()));
     connect(ui->DownButton, SIGNAL (released()), this, SLOT (downArrowPressed()));
     connect(ui->UpButton, SIGNAL (released()), this, SLOT (upArrowPressed()));
+    connect(ui->SelectButton, SIGNAL (released()), this, SLOT (selectorButtonPressed()));
     connect(ui->test, SIGNAL(released()), this, SLOT (test()));
 
     connect(ui->PowerButton, &QPushButton::released, this, &MainWindow::changePower);
@@ -35,6 +37,7 @@ MainWindow::~MainWindow()
 void MainWindow::initGui()
 {
     this->isMenuButtonPressed = false;
+    this->sessionStarted = false;
 
     // default sensor state
     this->sensorLightOn = true;
@@ -51,11 +54,26 @@ void MainWindow::initGui()
     ui->SelectButton->setEnabled(powerState);
     ui->Screen->setVisible(powerState);
 
+    // init menu
+    QWidget *screen = ui->Screen;
+    vector<string> menuOptions = this->device.getScreen()->getMenuOptions();
+    this->menuLayout = new QVBoxLayout(screen);
+    for (const string &option : menuOptions)
+    {
+        QLabel *optionLabel = new QLabel(QString::fromStdString(option), screen);
+        optionLabel->setStyleSheet("border: 1px solid black;");
+        optionLabel->hide();
+        menuLayout->addWidget(optionLabel);
+        menuLayout->setAlignment(optionLabel, Qt::AlignHCenter | Qt::AlignVCenter);
+        menuOptionLabels.append(optionLabel);
+    }
+    screen->setLayout(menuLayout);
+
 
 }
 
 /**
-  handle scenario when menu button pressed
+  display menu when menu button pressed
   @param {}
   @return {void} Returns nothing
 */
@@ -65,24 +83,49 @@ void MainWindow::menuButtonPressed()
     this->isMenuButtonPressed = true;
 
     ui->Graph->hide();
-    QWidget *screen = ui->Screen;
-    vector<string> menuOptions = this->device.getScreen()->getMenuOptions();
 
-    // display menu
-    QVBoxLayout *layout = new QVBoxLayout(screen);
-    for (const string &option : menuOptions)
-    {
-        QLabel *optionLabel = new QLabel(QString::fromStdString(option), screen);
-        optionLabel->setStyleSheet("border: 1px solid black;");
-        layout->addWidget(optionLabel);
-        layout->setAlignment(optionLabel, Qt::AlignHCenter | Qt::AlignVCenter);
-        menuOptionLabels.append(optionLabel);
-    }
-    screen->setLayout(layout);
-    screen->setStyleSheet("background-color: white");
+    menuOptionLabels.at(0)->show();
+    menuOptionLabels.at(1)->show();
+    menuOptionLabels.at(2)->show();
+
+    ui->CoherenceLabel->hide();
+    ui->LengthLabel->hide();
+    ui->AchievementLabel->hide();
+
 
     QLabel *label = menuOptionLabels.at(0);
     label->setStyleSheet("border: 1px solid yellow;");
+}
+
+/**
+  handle scenario selector button pressed
+  @param {}
+  @return {void} Returns nothing
+*/
+void MainWindow::selectorButtonPressed()
+{
+    if (selectedMenuOption == 0 && isMenuButtonPressed)
+    {
+        ui->Graph->show();
+        menuOptionLabels.at(0)->hide();
+        menuOptionLabels.at(1)->hide();
+        menuOptionLabels.at(2)->hide();
+
+
+        if (!sessionStarted)
+            startSession();
+
+    }
+}
+
+/**
+  start session
+  @param {}
+  @return {void} Returns nothing
+*/
+void MainWindow::startSession()
+{
+
 }
 
 /**

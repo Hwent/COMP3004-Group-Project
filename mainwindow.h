@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QLabel>
+#include <QVBoxLayout>
 #include "Device.h"
 
 QT_BEGIN_NAMESPACE
@@ -28,6 +29,8 @@ private:
     QVector<QLabel *> menuOptionLabels;
     int selectedMenuOption;
     bool isMenuButtonPressed;
+    bool sessionStarted;
+    QVBoxLayout *menuLayout;
 
 private slots:
     void test();
@@ -35,6 +38,8 @@ private slots:
     void menuButtonPressed();
     void downArrowPressed();
     void upArrowPressed();
+    void selectorButtonPressed();
+    void startSession();
 
     void handleSensorStateChange();
     void handleBatteryChange();
