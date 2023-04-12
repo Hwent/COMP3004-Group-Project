@@ -18,6 +18,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->DownButton, SIGNAL (released()), this, SLOT (downArrowPressed()));
     connect(ui->UpButton, SIGNAL (released()), this, SLOT (upArrowPressed()));
     connect(ui->SelectButton, SIGNAL (released()), this, SLOT (selectorButtonPressed()));
+    connect(ui->backButton, SIGNAL (released()), this, SLOT (backButtonPressed()));
     connect(ui->test, SIGNAL(released()), this, SLOT (test()));
 
     connect(ui->PowerButton, &QPushButton::released, this, &MainWindow::changePower);
@@ -54,35 +55,46 @@ void MainWindow::initGui()
     ui->SelectButton->setEnabled(powerState);
     ui->Screen->setVisible(powerState);
 
+
     // init menu
     QWidget *screen = ui->Screen;
-    vector<string> menuOptions = this->device.getScreen()->getMenuOptions();
+    stackedWidget = new QStackedWidget(screen);
+
+    //vector<string> menuOptions = this->device.getScreen()->getMenuOptions();
+    //create main menu
     this->menuLayout = new QVBoxLayout(screen);
-    for (const string &option : menuOptions)
-    {
-        QLabel *optionLabel = new QLabel(QString::fromStdString(option), screen);
-        optionLabel->setStyleSheet("border: 1px solid black;");
-        optionLabel->hide();
-        menuLayout->addWidget(optionLabel);
-        menuLayout->setAlignment(optionLabel, Qt::AlignHCenter | Qt::AlignVCenter);
-        menuOptionLabels.append(optionLabel);
-    }
-    screen->setLayout(menuLayout);
+    mainMenuList = new QListWidget(stackedWidget);
+    mainMenuList->addItem("Start/End Session");
+    mainMenuList->addItem("Settings");
+    mainMenuList->addItem("History");
+    mainMenuList->setCurrentRow(0);
+    stackedWidget->addWidget(mainMenuList);
 
-    //init log/history menu
-    QListWidget *log= ui->logList;
-    vector<SimulationData> datalist = this->device.getScreen()->getlog();
-    QStringList history=QStringList();
-    for (SimulationData data : datalist)
-    {
-    history.append(data.toString());
-    }
-    log->addItems(history);
-    log->hide();
-
-    qInfo()<<history.at(0);
+        // Create Session menu
+        QListWidget *sessionList = new QListWidget(stackedWidget);
+        stackedWidget->addWidget(sessionList);
+        // Create Settings menu
+        QListWidget *settingsList = new QListWidget(stackedWidget);
+        stackedWidget->addWidget(settingsList);
+        // Create History menu
+        QListWidget *historyList = new QListWidget();
+        stackedWidget->addWidget(historyList);
 
 
+        // Add the QStackedWidget to the main layout
+        menuLayout->setContentsMargins(20, 20, 20, 20);
+        menuLayout->addWidget(stackedWidget);
+        screen->setLayout(menuLayout);
+
+
+        //init log/history menu
+        vector<SimulationData> datalist = this->device.getScreen()->getlog();
+        QStringList history=QStringList();
+        for (SimulationData data : datalist)
+        {
+        historyList->addItem(data.toString());
+        }
+        historyList->setCurrentRow(0);
 
 }
 
@@ -93,22 +105,26 @@ void MainWindow::initGui()
 */
 void MainWindow::menuButtonPressed()
 {
-    this->selectedMenuOption = 0;
-    this->isMenuButtonPressed = true;
-
     ui->Graph->hide();
-    ui->logList->hide();
-    menuOptionLabels.at(0)->show();
-    menuOptionLabels.at(1)->show();
-    menuOptionLabels.at(2)->show();
-
     ui->CoherenceLabel->hide();
     ui->LengthLabel->hide();
     ui->AchievementLabel->hide();
 
+    stackedWidget->setCurrentIndex(0);
+}
+/**
+  handle scenario back button pressed
+  @param {}
+  @return {void} Returns nothing
+*/
+void MainWindow::backButtonPressed()
+{
+    // Switch back to the main menu screen
+        stackedWidget->setCurrentIndex(0);
 
-    QLabel *label = menuOptionLabels.at(0);
-    label->setStyleSheet("border: 1px solid yellow;");
+
+        // Disable the back button
+        ui->backButton->setEnabled(false);
 }
 
 /**
@@ -118,30 +134,22 @@ void MainWindow::menuButtonPressed()
 */
 void MainWindow::selectorButtonPressed()
 {
-    // Start/End Session pressed
-    if (selectedMenuOption == 0 && isMenuButtonPressed)
-    {
-        ui->Graph->show();
-        menuOptionLabels.at(0)->hide();
-        menuOptionLabels.at(1)->hide();
-        menuOptionLabels.at(2)->hide();
+    // Get the selected menu option
+        QListWidgetItem *item = mainMenuList->currentItem();
+        QString option = item->text();
 
-
-        if (!sessionStarted)
-            startSession();
-    }
-    // Log/History pressed
-    if (selectedMenuOption == 2 && isMenuButtonPressed)
-        {
-            ui->logList->show();
-            menuOptionLabels.at(0)->hide();
-            menuOptionLabels.at(1)->hide();
-            menuOptionLabels.at(2)->hide();
-
-
-
+        // Switch to the correct screen based on the selected option
+        if (option == "Start/End Session") {
+            stackedWidget->setCurrentIndex(1); // Switch to the session screen
+        } else if (option == "Settings") {
+            stackedWidget->setCurrentIndex(2); // Switch to the settings screen
+        } else if (option == "History") {
+            stackedWidget->setCurrentIndex(3); // Switch to the history screen
         }
 
+
+        // Enable the back button
+        ui->backButton->setEnabled(true);
 }
 
 /**
@@ -154,6 +162,7 @@ void MainWindow::startSession()
 
 }
 
+
 /**
   handle scenario where down arrow is pressed
   @param {}
@@ -161,14 +170,16 @@ void MainWindow::startSession()
 */
 void MainWindow::downArrowPressed()
 {
-    if (selectedMenuOption != 2 && isMenuButtonPressed)
-    {
-        QLabel *label = menuOptionLabels.at(selectedMenuOption);
-        label->setStyleSheet("border: 1px solid black;");
-        this->selectedMenuOption++;
-        label = menuOptionLabels.at(selectedMenuOption);
-        label->setStyleSheet("border: 1px solid yellow;");
-    }
+    QListWidget *listWidget = qobject_cast<QListWidget*>(stackedWidget->currentWidget());
+        //qInfo() <<"stackedWidget position:" <<stackedWidget->currentIndex()<<listWidget;
+        if (listWidget) { // make sure the current page is a QListWidget
+            int currentIndex = listWidget->currentRow();
+            if (currentIndex < listWidget->count() - 1) {
+                listWidget->setCurrentRow(currentIndex + 1);
+            }
+
+        }
+
 }
 
 /**
@@ -178,14 +189,14 @@ void MainWindow::downArrowPressed()
 */
 void MainWindow::upArrowPressed()
 {
-    if (selectedMenuOption !=0 && isMenuButtonPressed)
-    {
-        QLabel *label = menuOptionLabels.at(selectedMenuOption);
-        label->setStyleSheet("border: 1px solid black;");
-        this->selectedMenuOption--;
-        label = menuOptionLabels.at(selectedMenuOption);
-        label->setStyleSheet("border: 1px solid yellow;");
-    }
+    QListWidget *listWidget = qobject_cast<QListWidget*>(stackedWidget->currentWidget());
+
+        if (listWidget) { // make sure the current page is a QListWidget
+            int currentIndex = listWidget->currentRow();
+            if (currentIndex > 0) {
+                listWidget->setCurrentRow(currentIndex - 1);
+            }
+        }
 }
 
 /**

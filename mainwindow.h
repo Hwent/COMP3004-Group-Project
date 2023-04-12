@@ -5,7 +5,8 @@
 #include <QLabel>
 #include <QVBoxLayout>
 #include "Device.h"
-
+#include <QStackedWidget>
+#include <QListWidget>
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -31,6 +32,10 @@ private:
     bool isMenuButtonPressed;
     bool sessionStarted;
     QVBoxLayout *menuLayout;
+    QStackedWidget *stackedWidget;
+    QListWidget *mainMenuList;
+
+
 
 private slots:
     void test();
@@ -39,9 +44,11 @@ private slots:
     void downArrowPressed();
     void upArrowPressed();
     void selectorButtonPressed();
+    void backButtonPressed();
     void startSession();
     //void logpressed();
     void handleSensorStateChange();
     void handleBatteryChange();
+
 };
 #endif // MAINWINDOW_H

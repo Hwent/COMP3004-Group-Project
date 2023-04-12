@@ -182,16 +182,6 @@
        <string/>
       </property>
      </widget>
-     <widget class="QListWidget" name="logList">
-      <property name="geometry">
-       <rect>
-        <x>-5</x>
-        <y>21</y>
-        <width>301</width>
-        <height>171</height>
-       </rect>
-      </property>
-     </widget>
     </widget>
     <widget class="QLineEdit" name="RedLight">
      <property name="geometry">
