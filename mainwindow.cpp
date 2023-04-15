@@ -11,6 +11,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     initGui();
+    this->setting = new Settings();
 
     connect(this->device.getSensor(), SIGNAL(sensorStateChanged()), this, SLOT(handleSensorStateChange()));
     connect(this->device.getBattery(), SIGNAL(batteryLevelUpdated()), this, SLOT(handleBatteryChange()));
@@ -20,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->SelectButton, SIGNAL (released()), this, SLOT (selectorButtonPressed()));
     connect(ui->backButton, SIGNAL (released()), this, SLOT (backButtonPressed()));
     connect(ui->test, SIGNAL(released()), this, SLOT (test()));
+    connect(this->setting, SIGNAL(updateSettingsUI()), this, SLOT(handleUpdateSettings()));
 
     connect(ui->PowerButton, &QPushButton::released, this, &MainWindow::changePower);
 
@@ -120,11 +122,18 @@ void MainWindow::menuButtonPressed()
 void MainWindow::backButtonPressed()
 {
     // Switch back to the main menu screen
-        stackedWidget->setCurrentIndex(0);
+    stackedWidget->setCurrentIndex(0);
 
 
-        // Disable the back button
-        ui->backButton->setEnabled(false);
+    // Disable the back button
+    ui->backButton->setEnabled(false);
+
+    // Removes settings connections if necessary
+    if(setBreathPacer[0] != nullptr)
+    {
+        disconnect(setBreathPacer[0]);
+        disconnect(setBreathPacer[1]);
+    }
 }
 
 /**
@@ -143,6 +152,9 @@ void MainWindow::selectorButtonPressed()
             stackedWidget->setCurrentIndex(1); // Switch to the session screen
         } else if (option == "Settings") {
             stackedWidget->setCurrentIndex(2); // Switch to the settings screen
+            handleUpdateSettings(); // set the settings widget
+            setBreathPacer[0] = connect(ui->RightButton, SIGNAL(released()), this->setting, SLOT(increaseBP()));
+            setBreathPacer[1] = connect(ui->LeftButton, &QPushButton::released, this->setting, &Settings::decreaseBP);
         } else if (option == "History") {
             stackedWidget->setCurrentIndex(3); // Switch to the history screen
         }
@@ -150,6 +162,15 @@ void MainWindow::selectorButtonPressed()
 
         // Enable the back button
         ui->backButton->setEnabled(true);
+}
+
+void MainWindow::handleUpdateSettings()
+{
+    QListWidget *item = qobject_cast<QListWidget*>(stackedWidget->currentWidget());
+
+    item->clear();
+
+    item->addItem(QString("Set breath pacer interval: %1 sec").arg(setting->getBreathPacer()));
 }
 
 /**

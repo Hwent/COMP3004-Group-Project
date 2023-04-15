@@ -7,7 +7,9 @@
 
 using namespace std;
 
-class Settings {
+class Settings: public QObject {
+
+    Q_OBJECT
 
 private:
     int challengeLevel;
@@ -15,12 +17,18 @@ private:
 
 public:
     Settings();
+
     void updateChallengLevel(int);
     void updateBreathPacer(int);
+    int getBreathPacer() {return breathPacer;}
+
+signals:
+    void updateSettingsUI();
 
 public slots:
     void handleUpdatedInterval(int);
-
+    void increaseBP();
+    void decreaseBP();
 
 
 };

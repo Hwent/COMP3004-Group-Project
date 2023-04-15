@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QVBoxLayout>
 #include "Device.h"
+#include "Settings.h"
 #include <QStackedWidget>
 #include <QListWidget>
 QT_BEGIN_NAMESPACE
@@ -23,6 +24,7 @@ public:
 private:
     Ui::MainWindow *ui;
     Device device;
+    Settings *setting;
 
 
     bool powerState;
@@ -34,6 +36,8 @@ private:
     QVBoxLayout *menuLayout;
     QStackedWidget *stackedWidget;
     QListWidget *mainMenuList;
+    QMetaObject::Connection setBreathPacer[2];
+
 
 
 
@@ -49,6 +53,8 @@ private slots:
     //void logpressed();
     void handleSensorStateChange();
     void handleBatteryChange();
+    void handleUpdateSettings();
+
 
 };
 #endif // MAINWINDOW_H

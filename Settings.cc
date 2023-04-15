@@ -18,6 +18,23 @@ void Settings::updateChallengLevel(int challengeLevel)
 }
 
 /**
+ * @brief Settings::increaseBP
+ */
+void Settings::increaseBP()
+{
+    if (breathPacer != 30)
+        this->breathPacer++;
+    emit updateSettingsUI();
+}
+
+void Settings::decreaseBP()
+{
+    if (breathPacer != 1)
+        this->breathPacer--;
+    emit updateSettingsUI();
+}
+
+/**
   update breath pacer
   @param {int} new breath pacer setting
   @return {void} Returns nothing
