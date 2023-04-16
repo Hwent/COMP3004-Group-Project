@@ -25,6 +25,7 @@ SOURCES += \
     Settings.cc \
     SimulationData.cc \
     coherencescore.cpp \
+    history.cpp \
     main.cpp \
     mainwindow.cpp \
     qcustomplot.cpp
@@ -39,6 +40,7 @@ HEADERS += \
     Settings.h \
     SimulationData.h \
     coherencescore.h \
+    history.h \
     mainwindow.h \
     qcustomplot.h
 

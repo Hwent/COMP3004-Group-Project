@@ -41,7 +41,7 @@ void MainWindow::initGui()
 {
     this->isMenuButtonPressed = false;
     this->sessionStarted = false;
-
+    this->history=new History();
     // default sensor state
     this->sensorLightOn = true;
     ui->Sensor->setStyleSheet("QLabel {background-color: pink}");
@@ -65,7 +65,7 @@ void MainWindow::initGui()
     //vector<string> menuOptions = this->device.getScreen()->getMenuOptions();
     //create main menu
     this->menuLayout = new QVBoxLayout(screen);
-    mainMenuList = new QListWidget(stackedWidget);
+    QListWidget *mainMenuList = new QListWidget(stackedWidget);
     mainMenuList->addItem("Start/End Session");
     mainMenuList->addItem("Settings");
     mainMenuList->addItem("History");
@@ -79,24 +79,15 @@ void MainWindow::initGui()
         QListWidget *settingsList = new QListWidget(stackedWidget);
         stackedWidget->addWidget(settingsList);
         // Create History menu
-        QListWidget *historyList = new QListWidget();
+        historyList = new QListWidget(stackedWidget);
         stackedWidget->addWidget(historyList);
-
-
+        // Creat History item menu
+        historyitemList = new QListWidget(historyList);
+        stackedWidget->addWidget(historyitemList);
         // Add the QStackedWidget to the main layout
         menuLayout->setContentsMargins(20, 20, 20, 20);
         menuLayout->addWidget(stackedWidget);
         screen->setLayout(menuLayout);
-
-
-        //init log/history menu
-        vector<SimulationData> datalist = this->device.getScreen()->getlog();
-        QStringList history=QStringList();
-        for (SimulationData data : datalist)
-        {
-        historyList->addItem(data.toString());
-        }
-        historyList->setCurrentRow(0);
 
 }
 
@@ -121,12 +112,15 @@ void MainWindow::menuButtonPressed()
 */
 void MainWindow::backButtonPressed()
 {
-    // Switch back to the main menu screen
-    stackedWidget->setCurrentIndex(0);
-
-
-    // Disable the back button
-    ui->backButton->setEnabled(false);
+    // Get the current index of the stacked widget
+        int currentIndex = stackedWidget->currentIndex();
+        if (currentIndex == 0) {
+            ui->backButton->setEnabled(false);
+        }else if(currentIndex==4){
+            stackedWidget->setCurrentIndex(currentIndex - 1);
+        } else{
+            stackedWidget->setCurrentIndex(0);
+        }
 
     // Removes settings connections if necessary
     if(setBreathPacer[0] != nullptr)
@@ -143,9 +137,14 @@ void MainWindow::backButtonPressed()
 */
 void MainWindow::selectorButtonPressed()
 {
+    QListWidget *item = qobject_cast<QListWidget*>(stackedWidget->currentWidget());
+        if (!item->count()) {
+            // List is empty, do nothing
+            return;
+        }
     // Get the selected menu option
-        QListWidgetItem *item = mainMenuList->currentItem();
-        QString option = item->text();
+        QString option = item->currentItem()->text();
+
 
         // Switch to the correct screen based on the selected option
         if (option == "Start/End Session") {
@@ -156,12 +155,50 @@ void MainWindow::selectorButtonPressed()
             setBreathPacer[0] = connect(ui->RightButton, SIGNAL(released()), this->setting, SLOT(increaseBP()));
             setBreathPacer[1] = connect(ui->LeftButton, &QPushButton::released, this->setting, &Settings::decreaseBP);
         } else if (option == "History") {
+            updateHistoryMenu();
             stackedWidget->setCurrentIndex(3); // Switch to the history screen
+        } else if (option.contains("Session")){
+            initHistoryitem();
+            stackedWidget->setCurrentIndex(4);
+        } else if(option=="delete"){
+             clearHistoryitem();
         }
-
-
         // Enable the back button
         ui->backButton->setEnabled(true);
+}
+void MainWindow::initHistoryitem()
+{
+    // Clear the history item list widget
+        historyitemList->clear();
+        QString selectedSession = historyList->currentItem()->text();
+        int sessionNumber = selectedSession.mid(7).toInt();
+        // Add items from the history
+        historyitemList->addItem((history->getHistory()[sessionNumber-1]).toString());
+        historyitemList->addItem("delete");
+        historyitemList->item(0)->setData(Qt::UserRole, sessionNumber-1);
+        historyitemList->setCurrentRow(0);
+
+}
+void MainWindow::clearHistoryitem(){
+
+    QListWidgetItem *item = historyitemList->item(0);
+    int i = item->data(Qt::UserRole).toInt();
+    menuButtonPressed();
+    history->deleteItem(i);
+}
+
+void MainWindow::updateHistoryMenu(){
+    //init/update history menu
+    historyList->clear();
+
+    int size=history->getHistory().size();
+    if (size>0){
+    for (int i = 0; i < size; i++) {
+                QString itemText = "Session" + QString::number(i+1);
+                historyList->addItem(itemText);
+            }
+    historyList->setCurrentRow(0);
+    }
 }
 
 void MainWindow::handleUpdateSettings()

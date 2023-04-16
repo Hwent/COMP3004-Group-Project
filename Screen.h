@@ -18,7 +18,7 @@ private:
     Sensor heartMonitor;
     Battery batteryLevel;
     vector<string> menuOptions;
-    vector<SimulationData> log;
+    //vector<SimulationData> log;
 
 
 
@@ -27,7 +27,7 @@ public:
     Sensor* getSensor();
     Battery* getBattery();
     vector<string> getMenuOptions();
-    vector<SimulationData> getlog();
+    //vector<SimulationData> getlog();
 };
 
 #endif // SCREEN_H

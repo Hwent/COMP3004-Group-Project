@@ -25,6 +25,7 @@ private:
     Ui::MainWindow *ui;
     Device device;
     Settings *setting;
+    History *history;
 
 
     bool powerState;
@@ -35,7 +36,8 @@ private:
     bool sessionStarted;
     QVBoxLayout *menuLayout;
     QStackedWidget *stackedWidget;
-    QListWidget *mainMenuList;
+    QListWidget *historyList;
+    QListWidget *historyitemList;
     QMetaObject::Connection setBreathPacer[2];
 
 
@@ -54,6 +56,9 @@ private slots:
     void handleSensorStateChange();
     void handleBatteryChange();
     void handleUpdateSettings();
+    void initHistoryitem();
+    void clearHistoryitem();
+    void updateHistoryMenu();
 
 
 };
