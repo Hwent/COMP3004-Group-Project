@@ -13,7 +13,7 @@ class Graph: public QObject
 
 public:
     Graph();
-    void plotGraph();
+    void plotGraph(QVector<int>);
 };
 
 #endif // GRAPH_H

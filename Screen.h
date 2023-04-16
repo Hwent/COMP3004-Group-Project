@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 #include <QDebug>
+#include <QMap>
+#include <QDate>
 #include "Sensor.h"
 #include "Battery.h"
 #include "SimulationData.h"
@@ -18,8 +20,8 @@ private:
     Sensor heartMonitor;
     Battery batteryLevel;
     vector<string> menuOptions;
-    //vector<SimulationData> log;
-
+    QMap<QDateTime, QVector<double>> log;
+    SimulationData simulationData;
 
 
 public:
@@ -27,7 +29,8 @@ public:
     Sensor* getSensor();
     Battery* getBattery();
     vector<string> getMenuOptions();
-    //vector<SimulationData> getlog();
+    QMap<QDateTime, QVector<double>> getLog();
+    void addLog(double, double, double);
 };
 
 #endif // SCREEN_H

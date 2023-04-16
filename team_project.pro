@@ -19,13 +19,10 @@ SOURCES += \
     Battery.cc \
     BreathPaceWidget.cc \
     Device.cc \
-    Graph.cc \
     Screen.cc \
     Sensor.cc \
     Settings.cc \
-    SimulationData.cc \
-    coherencescore.cpp \
-    history.cpp \
+    SimluationData.cc \
     main.cpp \
     mainwindow.cpp \
     qcustomplot.cpp
@@ -34,13 +31,10 @@ HEADERS += \
     Battery.h \
     BreathPaceWidget.h \
     Device.h \
-    Graph.h \
     Screen.h \
     Sensor.h \
     Settings.h \
     SimulationData.h \
-    coherencescore.h \
-    history.h \
     mainwindow.h \
     qcustomplot.h
 

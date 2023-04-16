@@ -2,21 +2,24 @@
 #define SIMULATIONDATA_H
 
 #include <iostream>
-#include <QString>
+#include <string>
 #include <QDebug>
+#include <QMap>
 #include <QDateTime>
+
 using namespace std;
 
 class SimulationData {
 
 private:
-    int coherenceScore;
-    int challengeLevel;
-    int breathPacer;
-    QDateTime currentDateTime;
+
+    QMap<QDateTime, QVector<double>> simulationLog; // date: [coherence, length, achievement]
+
 public:
-    SimulationData(int,int,int);
-    QString toString();
+    SimulationData();
+//    QString toString();
+    void addLog(double, double, double);
+    QMap<QDateTime, QVector<double>> getLog();
 
 };
 

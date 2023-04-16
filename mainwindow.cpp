@@ -11,8 +11,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     initGui();
-    this->setting = new Settings();
 
+    connect(&timer, &QTimer::timeout, this, &MainWindow::updateSessionMetrics);
     connect(this->device.getSensor(), SIGNAL(sensorStateChanged()), this, SLOT(handleSensorStateChange()));
     connect(this->device.getBattery(), SIGNAL(batteryLevelUpdated()), this, SLOT(handleBatteryChange()));
     connect(ui->MenuButton, SIGNAL (released()), this, SLOT (menuButtonPressed()));
@@ -20,8 +20,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->UpButton, SIGNAL (released()), this, SLOT (upArrowPressed()));
     connect(ui->SelectButton, SIGNAL (released()), this, SLOT (selectorButtonPressed()));
     connect(ui->backButton, SIGNAL (released()), this, SLOT (backButtonPressed()));
-    connect(ui->test, SIGNAL(released()), this, SLOT (test()));
     connect(this->setting, SIGNAL(updateSettingsUI()), this, SLOT(handleUpdateSettings()));
+
+    connect(ui->SensorScenario, SIGNAL(released()), this, SLOT (sensorScenario()));
+    connect(ui->LowBatteryScenario, SIGNAL(released()), this, SLOT (lowBatteryScenario()));
 
     connect(ui->PowerButton, &QPushButton::released, this, &MainWindow::changePower);
 
@@ -41,7 +43,21 @@ void MainWindow::initGui()
 {
     this->isMenuButtonPressed = false;
     this->sessionStarted = false;
-    this->history=new History();
+    this->sessionLength = 0;
+    this->sum = 0;
+    this->coherenceIndex = 0;
+    this->achievementScore = 0;
+    this->previousCoherenceScores = {};
+    this->prevCoherenceLevel = 0;
+    this->timeInCoherencelevel = {0, 0, 0};
+
+    this->setting = new Settings();
+
+    // coherence lights default
+    ui->RedLight->setStyleSheet("QLabel {background-color: rgb(207, 124, 136);}");
+    ui->GreenLight->setStyleSheet("QLabel {background-color: lightgreen;}");
+    ui->BlueLight->setStyleSheet("QLabel {background-color: lightblue;}");
+
     // default sensor state
     this->sensorLightOn = true;
     ui->Sensor->setStyleSheet("QLabel {background-color: pink}");
@@ -57,38 +73,135 @@ void MainWindow::initGui()
     ui->SelectButton->setEnabled(powerState);
     ui->Screen->setVisible(powerState);
 
-
     // init menu
     QWidget *screen = ui->Screen;
+
+    this->menuLayout = new QVBoxLayout(screen);
     stackedWidget = new QStackedWidget(screen);
 
-    //vector<string> menuOptions = this->device.getScreen()->getMenuOptions();
-    //create main menu
-    this->menuLayout = new QVBoxLayout(screen);
-    QListWidget *mainMenuList = new QListWidget(stackedWidget);
+    mainMenuList = new QListWidget(stackedWidget);
     mainMenuList->addItem("Start/End Session");
     mainMenuList->addItem("Settings");
     mainMenuList->addItem("History");
     mainMenuList->setCurrentRow(0);
     stackedWidget->addWidget(mainMenuList);
 
-        // Create Session menu
-        QListWidget *sessionList = new QListWidget(stackedWidget);
-        stackedWidget->addWidget(sessionList);
-        // Create Settings menu
-        QListWidget *settingsList = new QListWidget(stackedWidget);
-        stackedWidget->addWidget(settingsList);
-        // Create History menu
-        historyList = new QListWidget(stackedWidget);
-        stackedWidget->addWidget(historyList);
-        // Creat History item menu
-        historyitemList = new QListWidget(historyList);
-        stackedWidget->addWidget(historyitemList);
-        // Add the QStackedWidget to the main layout
-        menuLayout->setContentsMargins(20, 20, 20, 20);
-        menuLayout->addWidget(stackedWidget);
-        screen->setLayout(menuLayout);
+    // Create Session menu
+    QListWidget *sessionList = new QListWidget(stackedWidget);
+    stackedWidget->addWidget(sessionList);
+    // Create Settings menu
+    QListWidget *settingsList = new QListWidget(stackedWidget);
+    stackedWidget->addWidget(settingsList);
+    // Create History menu
+    historyList = new QListWidget(stackedWidget);
+    stackedWidget->addWidget(historyList);
+    // create logs selection
+    logList = new QListWidget(stackedWidget);
+    stackedWidget->addWidget(logList);
 
+    // Add the QStackedWidget to the main layout
+    menuLayout->setContentsMargins(20, 20, 20, 20);
+    menuLayout->addWidget(stackedWidget);
+    screen->setLayout(menuLayout);
+
+    //init log/history menu
+    QMap<QDateTime, QVector<double>> logHistory = device.getScreen()->getLog();
+    QStringList history=QStringList();
+    QList<QDateTime> dateTimes = logHistory.keys();
+
+    for (const QDateTime &dateTime : dateTimes)
+        historyList->addItem(dateTime.toString("yyyy-MM-dd hh:mm:ss"));
+
+    historyList->setCurrentRow(0);
+
+    // sample data
+    hrvData = {800, 820, 790, 805, 830, 810, 800, 795, 815, 790, 810, 800, 820, 780, 800, 820, 795,
+                805, 810, 790, 800, 830, 810, 790, 800, 820, 780, 800, 820, 795, 805, 810, 790, 800,
+                820, 790, 805, 830, 810, 800, 795, 815, 790, 810, 800, 820, 780, 800, 820, 795, 805,
+                810, 790, 815, 790, 810, 800, 820, 780, 800};
+
+    for (int i = 1; i <= 60; i++)
+        timeData.append(i);
+
+//    coherenceData = {0.3, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 0.2, 2.4, 6.5, 16, 2.7};
+     coherenceData = {0.3, 0.5, 1.5, 2.0, 3.0, 0.2, 2.4, 6.5, 16};
+
+    // init graph
+     QCustomPlot *customPlot = ui->Graph;
+     customPlot->xAxis2->setVisible(false);
+     customPlot->xAxis2->setTickLabels(false);
+     customPlot->yAxis2->setVisible(false);
+     customPlot->yAxis2->setTickLabels(false);
+     customPlot->xAxis->setTickLabels(false);
+     customPlot->yAxis->setTickLabels(false);
+     customPlot->xAxis->setLabel("Time");
+     customPlot->xAxis->setLabelFont(QFont("Arial", 8));
+     customPlot->yAxis->setLabel("HRV");
+     customPlot->yAxis->setLabelFont(QFont("Arial", 8));
+
+}
+
+/**
+  update the session metrics every 5 seconds
+  @param {}
+  @return {void} Returns nothing
+*/
+void MainWindow::updateSessionMetrics()
+{
+    sessionLength += 5;
+    if (sessionLength != 0 && coherenceIndex < coherenceData.size())
+    {
+        ui->RedLight->setStyleSheet("QLabel {background-color: rgb(207, 124, 136);}");
+        ui->GreenLight->setStyleSheet("QLabel {background-color: lightgreen;}");
+        ui->BlueLight->setStyleSheet("QLabel {background-color: lightblue;}");
+
+        // update/calculate metrics
+        ui->CoherenceVal->setNum(coherenceData[coherenceIndex]);
+        ui->LengthVal->setNum(sessionLength);
+        previousCoherenceScores.append(coherenceData[coherenceIndex]);
+
+        for (int k = 0; k < previousCoherenceScores.size(); k++)
+            sum += previousCoherenceScores[k];
+
+        achievementScore = sum/(previousCoherenceScores.size()+1);
+        double temp = round(achievementScore*100)/100;
+        ui->AchievementVal->setNum(temp);
+
+        // update coherence lights
+        int coherenceLevel = 0;
+        if (coherenceData[coherenceIndex] < 0.6)
+        {
+            ui->RedLight->setStyleSheet("QLabel {background-color: red;}");
+            coherenceLevel = 1;
+            timeInCoherencelevel[0] += 5;
+        }
+        else if (coherenceData[coherenceIndex] > 0.5 && coherenceData[coherenceIndex] < 3.1)
+        {
+            ui->BlueLight->setStyleSheet("QLabel {background-color: blue;}");
+            coherenceLevel = 2;
+            timeInCoherencelevel[1] += 5;
+        }
+        else
+        {
+            ui->GreenLight->setStyleSheet("QLabel {background-color: green;}");
+            coherenceLevel = 3;
+            timeInCoherencelevel[2] += 5;
+        }
+
+        if (coherenceLevel != prevCoherenceLevel)
+        {
+            //QApplication::beep();        Sound not enabled on VM so printing beep
+            qInfo() << "New Coherence Level: Beep";
+        }
+
+        prevCoherenceLevel = coherenceLevel;
+        coherenceIndex++;
+    }
+    else if (coherenceIndex >= coherenceData.size())
+    {
+        timer.stop();
+        endSession();
+    }
 }
 
 /**
@@ -98,13 +211,109 @@ void MainWindow::initGui()
 */
 void MainWindow::menuButtonPressed()
 {
-    ui->Graph->hide();
-    ui->CoherenceLabel->hide();
-    ui->LengthLabel->hide();
-    ui->AchievementLabel->hide();
+    ui->SummaryView->hide();
+    stackedWidget->show();
+    ui->backButton->setEnabled(false);
 
     stackedWidget->setCurrentIndex(0);
+
 }
+
+/**
+  handle scenario selector button pressed
+  @param {}
+  @return {void} Returns nothing
+*/
+void MainWindow::selectorButtonPressed()
+{
+
+    // Get the selected menu option
+        QListWidgetItem *item = mainMenuList->currentItem();
+        QString option = item->text();
+        QDateTime dateTime;
+
+        if (stackedWidget->currentIndex() == 3)
+        {
+            int historyItemIndex = historyList->currentRow();
+            QMap<QDateTime, QVector<double>> logHistory = device.getScreen()->getLog();
+            QList<QDateTime> dateTimes = logHistory.keys();
+
+            // get data corresponding to DateTime
+            for (int i = 0; i < dateTimes.size(); i++)
+            {
+                if (i == historyItemIndex)
+                {
+
+                    //stackedWidget->setCurrentIndex(4
+                    dateTime = dateTimes.at(i);
+                    double avgCoherence = logHistory.value(dateTime)[0];
+                    double sessionLength = logHistory.value(dateTime)[1];
+                    double achievementScore = logHistory.value(dateTime)[2];
+
+                    QString labelText = QString("Log Summary:\nAverage Coherence: %1\nSession Length: %2\nAchievement Score: %3")
+                            .arg(avgCoherence, 0, 'f', 2)
+                            .arg(sessionLength)
+                            .arg(achievementScore, 0, 'f', 2);
+                    logList->addItem(labelText);
+                    logList->addItem("Delete Log");
+                    logList->setCurrentRow(0);
+                    stackedWidget->setCurrentIndex(4);
+                    return;
+                }
+            }
+        }
+
+        else if (stackedWidget->currentIndex() == 4)
+        {
+            QListWidgetItem *logItem = logList->currentItem();
+            QString logOption = logItem->text();
+
+            if (logOption == "Delete Log")
+            {
+                delete logList->takeItem(1);
+                delete logList->takeItem(0);
+                QMap<QDateTime, QVector<double>> logHistory = device.getScreen()->getLog();
+                logHistory.remove(dateTime);
+
+                for (int i = 0; i < historyList->count(); i++)
+                {
+                    if (historyList->item(i)->text() == dateTime.toString("yyyy-MM-dd hh:mm:ss"))
+                        delete historyList->takeItem(i);
+                }
+
+                stackedWidget->setCurrentIndex(3);
+                ui->Device->update();
+                return;
+            }
+        }
+
+
+        // Switch to the correct screen based on the selected option
+        if (option == "Start/End Session")
+        {
+            stackedWidget->setCurrentIndex(1); // Switch to the session screen
+            stackedWidget->hide();
+            if (!sessionStarted)
+                startSession();
+        }
+        else if (option == "Settings")
+        {
+            stackedWidget->setCurrentIndex(2); // Switch to the settings screen
+            handleUpdateSettings(); // set the settings widget
+            setBreathPacer[0] = connect(ui->RightButton, SIGNAL(released()), this->setting, SLOT(increaseBP()));
+            setBreathPacer[1] = connect(ui->LeftButton, &QPushButton::released, this->setting, &Settings::decreaseBP);
+        }
+        else if (option == "History")
+        {
+            stackedWidget->setCurrentIndex(3); // Switch to the history screen
+            //int historyItemIndex = historyList->currentRow();
+        }
+
+
+        // Enable the back button
+        ui->backButton->setEnabled(true);
+}
+
 /**
   handle scenario back button pressed
   @param {}
@@ -112,15 +321,14 @@ void MainWindow::menuButtonPressed()
 */
 void MainWindow::backButtonPressed()
 {
-    // Get the current index of the stacked widget
-        int currentIndex = stackedWidget->currentIndex();
-        if (currentIndex == 0) {
-            ui->backButton->setEnabled(false);
-        }else if(currentIndex==4){
-            stackedWidget->setCurrentIndex(currentIndex - 1);
-        } else{
-            stackedWidget->setCurrentIndex(0);
-        }
+    // Switch back to the main menu screen
+    stackedWidget->show();
+    stackedWidget->setCurrentIndex(0);
+
+    logHistoryMetrics->hide();
+
+    // Disable the back button
+    ui->backButton->setEnabled(false);
 
     // Removes settings connections if necessary
     if(setBreathPacer[0] != nullptr)
@@ -131,95 +339,90 @@ void MainWindow::backButtonPressed()
 }
 
 /**
-  handle scenario selector button pressed
-  @param {}
-  @return {void} Returns nothing
-*/
-void MainWindow::selectorButtonPressed()
-{
-    QListWidget *item = qobject_cast<QListWidget*>(stackedWidget->currentWidget());
-        if (!item->count()) {
-            // List is empty, do nothing
-            return;
-        }
-    // Get the selected menu option
-        QString option = item->currentItem()->text();
-
-
-        // Switch to the correct screen based on the selected option
-        if (option == "Start/End Session") {
-            stackedWidget->setCurrentIndex(1); // Switch to the session screen
-        } else if (option == "Settings") {
-            stackedWidget->setCurrentIndex(2); // Switch to the settings screen
-            handleUpdateSettings(); // set the settings widget
-            setBreathPacer[0] = connect(ui->RightButton, SIGNAL(released()), this->setting, SLOT(increaseBP()));
-            setBreathPacer[1] = connect(ui->LeftButton, &QPushButton::released, this->setting, &Settings::decreaseBP);
-        } else if (option == "History") {
-            updateHistoryMenu();
-            stackedWidget->setCurrentIndex(3); // Switch to the history screen
-        } else if (option.contains("Session")){
-            initHistoryitem();
-            stackedWidget->setCurrentIndex(4);
-        } else if(option=="delete"){
-             clearHistoryitem();
-        }
-        // Enable the back button
-        ui->backButton->setEnabled(true);
-}
-void MainWindow::initHistoryitem()
-{
-    // Clear the history item list widget
-        historyitemList->clear();
-        QString selectedSession = historyList->currentItem()->text();
-        int sessionNumber = selectedSession.mid(7).toInt();
-        // Add items from the history
-        historyitemList->addItem((history->getHistory()[sessionNumber-1]).toString());
-        historyitemList->addItem("delete");
-        historyitemList->item(0)->setData(Qt::UserRole, sessionNumber-1);
-        historyitemList->setCurrentRow(0);
-
-}
-void MainWindow::clearHistoryitem(){
-
-    QListWidgetItem *item = historyitemList->item(0);
-    int i = item->data(Qt::UserRole).toInt();
-    menuButtonPressed();
-    history->deleteItem(i);
-}
-
-void MainWindow::updateHistoryMenu(){
-    //init/update history menu
-    historyList->clear();
-
-    int size=history->getHistory().size();
-    if (size>0){
-    for (int i = 0; i < size; i++) {
-                QString itemText = "Session" + QString::number(i+1);
-                historyList->addItem(itemText);
-            }
-    historyList->setCurrentRow(0);
-    }
-}
-
-void MainWindow::handleUpdateSettings()
-{
-    QListWidget *item = qobject_cast<QListWidget*>(stackedWidget->currentWidget());
-
-    item->clear();
-
-    item->addItem(QString("Set breath pacer interval: %1 sec").arg(setting->getBreathPacer()));
-}
-
-/**
   start session
   @param {}
   @return {void} Returns nothing
 */
 void MainWindow::startSession()
 {
+    ui->CoherenceVal->setNum(0);
+    ui->LengthVal->setNum(0);
+    ui->AchievementVal->setNum(0);
+
+    timer.start(5000);
+    plotGraph();
 
 }
 
+/**
+  end session, reset all variables and gui to default
+  @param {}
+  @return {void} Returns nothing
+*/
+void MainWindow::endSession()
+{
+    // show summary view
+    QWidget *summaryView = ui->SummaryView;
+    summaryView->show();
+    summaryView->setStyleSheet("QWidget {background-color: white}");
+
+    double totalCoherence = 0;
+
+    for (int i = 0; i < coherenceData.size(); i++)
+    {
+        totalCoherence += coherenceData[i];
+    }
+    double avgCoherence = static_cast<double>(totalCoherence)/coherenceData.size();
+
+    QLabel *coherenceLevels = ui->CoherenceLevels;
+    sessionLength -= 5;
+    QString labelText = QString("Coherence Levels:\nLevel 1: %1%\nLevel 2: %2%\nLevel 3: %3%")
+            .arg(static_cast<double>(timeInCoherencelevel[0])/sessionLength*100, 0, 'f', 2)
+            .arg(static_cast<double>(timeInCoherencelevel[1])/sessionLength*100, 0, 'f', 2)
+            .arg(static_cast<double>(timeInCoherencelevel[2])/sessionLength*100, 0, 'f', 2);
+    coherenceLevels->setText(labelText);
+    coherenceLevels->setStyleSheet("QLabel {font-size: 9px}");
+    coherenceLevels->show();
+
+    QLabel *metricsLabel = ui->MetricsLabel;
+    labelText = QString("Metrics Summary:\nAverage Coherence: %1\nSession Length: %2\nAchievement Score: %3")
+            .arg(avgCoherence, 0, 'f', 2)
+            .arg(sessionLength)
+            .arg(achievementScore, 0, 'f', 2);
+    metricsLabel->setText(labelText);
+    metricsLabel->setStyleSheet("QLabel {font-size: 9px}");
+    metricsLabel->show();
+
+    // save for history log before reset
+    device.getScreen()->addLog(avgCoherence, static_cast<double>(sessionLength), achievementScore);
+    QMap<QDateTime, QVector<double>> logHistory = device.getScreen()->getLog();
+    QStringList history=QStringList();
+    QList<QDateTime> dateTimes = logHistory.keys();
+    qInfo() << logHistory;
+
+    for (const QDateTime &dateTime : dateTimes)
+        historyList->addItem(dateTime.toString());
+
+    historyList->setCurrentRow(0);
+    ui->Device->update();
+
+    // reset variables
+    sum = 0;
+    achievementScore = 0;
+    coherenceIndex = 0;
+    previousCoherenceScores = {};
+    prevCoherenceLevel = 0;
+    sessionLength = 0;
+    timeInCoherencelevel = {0, 0, 0};
+
+    // reset gui
+    ui->RedLight->setStyleSheet("QLabel {background-color: rgb(207, 124, 136);}");
+    ui->GreenLight->setStyleSheet("QLabel {background-color: lightgreen;}");
+    ui->BlueLight->setStyleSheet("QLabel {background-color: lightblue;}");
+    ui->CoherenceVal->setNum(0);
+    ui->LengthVal->setNum(0);
+    ui->AchievementVal->setNum(0);
+}
 
 /**
   handle scenario where down arrow is pressed
@@ -229,15 +432,13 @@ void MainWindow::startSession()
 void MainWindow::downArrowPressed()
 {
     QListWidget *listWidget = qobject_cast<QListWidget*>(stackedWidget->currentWidget());
-        //qInfo() <<"stackedWidget position:" <<stackedWidget->currentIndex()<<listWidget;
+
         if (listWidget) { // make sure the current page is a QListWidget
             int currentIndex = listWidget->currentRow();
             if (currentIndex < listWidget->count() - 1) {
                 listWidget->setCurrentRow(currentIndex + 1);
             }
-
         }
-
 }
 
 /**
@@ -247,6 +448,7 @@ void MainWindow::downArrowPressed()
 */
 void MainWindow::upArrowPressed()
 {
+
     QListWidget *listWidget = qobject_cast<QListWidget*>(stackedWidget->currentWidget());
 
         if (listWidget) { // make sure the current page is a QListWidget
@@ -275,11 +477,7 @@ void MainWindow::handleSensorStateChange()
         sensor->setStyleSheet("QLabel {background-color: grey}");
         this->sensorLightOn = false;
 
-        QLabel *sensorOffMessage = new QLabel("SENSOR OFF", ui->Screen);
-        QVBoxLayout *layout = new QVBoxLayout(ui->Screen);
-        layout->addWidget(sensorOffMessage);
-        layout->setAlignment(sensorOffMessage, Qt::AlignHCenter | Qt::AlignTop);
-        ui->Screen->setLayout(layout);
+        QString sensorMessage = "SENSOR OFF";
     }
     else
     {
@@ -288,6 +486,20 @@ void MainWindow::handleSensorStateChange()
 
     }
 
+}
+
+/**
+  when settings are changed
+  @param {}
+  @return {void} Returns nothing
+*/
+void MainWindow::handleUpdateSettings()
+{
+    QListWidget *item = qobject_cast<QListWidget*>(stackedWidget->currentWidget());
+
+    item->clear();
+
+    item->addItem(QString("Set breath pacer interval: %1 sec").arg(setting->getBreathPacer()));
 }
 
 /**
@@ -300,36 +512,33 @@ void MainWindow::handleBatteryChange()
 {
     qreal batteryLevel = this->device.getBattery()->getBatteryLevel();
     QProgressBar *batteryBar = ui->BatteryBar;
-    QWidget *screen = ui->Screen;
 
     batteryBar->setValue(batteryLevel);
     if (batteryLevel <= 20)
     {
         batteryBar->setStyleSheet("QProgressBar::chunk {background-color: red}");
-        QLabel *lowBatteryMessage = new QLabel("LOW BATTERY", screen);
-        QVBoxLayout *layout = new QVBoxLayout(screen);
-        layout->addWidget(lowBatteryMessage);
-        layout->setAlignment(lowBatteryMessage, Qt::AlignHCenter | Qt::AlignTop);
-        screen->setLayout(layout);
+        QString lowBatteryMessage = "LOW BATTERY";
     }
 
 }
 
-void MainWindow::test()
+/**
+  Update graph using the hrv sample data
+  @param {}
+  @return {void} Returns nothing
+*/
+void MainWindow::plotGraph()
 {
-    // add temp graph
-    qInfo("test");
-
     QCustomPlot *customPlot = ui->Graph;
     customPlot->addGraph();
     customPlot->graph(0)->setPen(QPen(Qt::blue));
 
-    QVector<double> x(251), y(251);
-    for (int i=0; i < 251; ++i)
-    {
-        x[i] = i;
-        y[i] = qExp(-i/150.0)*qCos(i/10.0);
-    }
+    // make sin wave
+    for (int i = 0; i < timeData.size(); i++)
+        timeData[i] = i*0.1;
+
+    for (int i = 0; i < hrvData.size(); i++)
+        hrvData[i] = sin(timeData[i] * 2 * M_PI);
 
     customPlot->xAxis2->setVisible(false);
     customPlot->xAxis2->setTickLabels(false);
@@ -340,21 +549,17 @@ void MainWindow::test()
 
     connect(customPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->xAxis2, SLOT(setRange(QCPRange)));
     connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->yAxis2, SLOT(setRange(QCPRange)));
-    customPlot->graph(0)->setData(x, y);
+
+    customPlot->xAxis->setLabel("Time");
+    customPlot->xAxis->setLabelFont(QFont("Arial", 8));
+    customPlot->yAxis->setLabel("HRV");
+    customPlot->yAxis->setLabelFont(QFont("Arial", 8));
+    customPlot->yAxis->setRange(770, 840);
+
+    customPlot->graph(0)->setData(timeData, hrvData);
     customPlot->rescaleAxes();
 
     customPlot->replot();
-
-    // test heart monitor sensor
-    qInfo() << "Testing sensor change";
-    this->device.getSensor()->changeSensorState(!this->sensorLightOn);
-
-    // test battery
-//    qInfo() << "Testing battery: set to 80%";
-//    this->device.getBattery()->updateBatteryLevel(80);
-//    qInfo() << "Testing battery: set to 15%";
-//    this->device.getBattery()->updateBatteryLevel(15);
-
 
 }
 
@@ -376,3 +581,17 @@ void MainWindow::changePower()
     ui->Screen->setVisible(powerState);
 }
 
+void MainWindow::sensorScenario()
+{
+    // test heart monitor sensor
+    qInfo() << "Testing sensor change";
+    this->device.getSensor()->changeSensorState(!this->sensorLightOn);
+
+}
+
+void MainWindow::lowBatteryScenario()
+{
+    // test battery
+    qInfo() << "Testing battery: set to 15%";
+    this->device.getBattery()->updateBatteryLevel(15);
+}

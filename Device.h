@@ -5,7 +5,7 @@
 #include <string>
 #include <QDebug>
 #include "Screen.h"
-#include "history.h"
+#include "Button.h"
 
 using namespace std;
 
@@ -15,14 +15,12 @@ class Device: public QObject
 
 private:
     Screen screen;
-    History history;
 
 public:
     Device();
     Sensor* getSensor();
     Battery* getBattery();
     Screen* getScreen();
-    History* getHistory();
 };
 
 #endif // DEVICE_H

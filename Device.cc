@@ -20,5 +20,3 @@ Sensor* Device::getSensor(){return this->screen.getSensor();}
 Battery* Device::getBattery(){return this->screen.getBattery();}
 
 Screen* Device::getScreen() {return &this->screen; }
-
-History* Device::getHistory() {return &this->history; }

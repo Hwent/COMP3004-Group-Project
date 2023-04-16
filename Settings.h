@@ -17,7 +17,6 @@ private:
 
 public:
     Settings();
-
     void updateChallengLevel(int);
     void updateBreathPacer(int);
     int getBreathPacer() {return breathPacer;}
@@ -29,6 +28,7 @@ public slots:
     void handleUpdatedInterval(int);
     void increaseBP();
     void decreaseBP();
+
 
 
 };

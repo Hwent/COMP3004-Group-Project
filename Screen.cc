@@ -5,6 +5,10 @@ Screen::Screen()
     this->menuOptions.push_back("Start/End Session");
     this->menuOptions.push_back("Settings");
     this->menuOptions.push_back("Log/History");
+
+    // test
+//    this->log.push_back(SimulationData(0,0,0));
+//    this->log.push_back(SimulationData(1,1,1));
 }
 
 /**
@@ -23,4 +27,9 @@ Battery* Screen::getBattery(){return &this->batteryLevel;}
 
 vector<string> Screen::getMenuOptions(){ return this->menuOptions;}
 
-//vector<SimulationData> Screen::getlog(){ return this->log;}
+QMap<QDateTime, QVector<double>> Screen::getLog(){ return simulationData.getLog();}
+
+void Screen::addLog(double avgCoherence, double sessionLength, double achievementScore)
+{
+    simulationData.addLog(avgCoherence, sessionLength, achievementScore);
+}
